@@ -1,0 +1,87 @@
+#!/usr/bin/env sh
+
+# Comentario: Información de derechos de autor, licencia y descripción
+
+# Configuración de JVM predeterminada
+DEFAULT_JVM_OPTS='-Xmx2048m -Dfile.encoding=UTF-8'
+
+# Comprobar y establecer el límite máximo de descriptores de archivo
+MAX_FD="maximum"
+if [ "`uname`" != "CYGWIN*" ] && [ "`uname`" != "Darwin*" ] && [ "`uname`" != "NONSTOP*" ]; then
+  MAX_FD_LIMIT=`ulimit -H -n`
+  if [ $? -eq 0 ]; then
+    if [ "$MAX_FD" = "maximum" -o "$MAX_FD" = "max" ]; then
+      MAX_FD="$MAX_FD_LIMIT"
+    fi
+    ulimit -n $MAX_FD
+    [ $? -ne 0 ] && echo "Advertencia: no se pudo establecer el límite máximo de descriptores de archivo a: $MAX_FD"
+  else
+    echo "Advertencia: no se pudo consultar el límite máximo de descriptores de archivo"
+  fi
+fi
+
+# Java command para iniciar la JVM
+JAVACMD="java"
+
+# Escape application args
+save () {
+    for i do printf %s\\n "$i" | sed "s/'/'\\\\''/g;1s/^/'/;\$s/\$/' \\\\/" ; done
+    echo " "
+}
+APP_ARGS=`save "$@"`
+
+# Agregar opciones específicas para cómo se muestra la aplicación en el dock (para Darwin)
+if [ "`uname`" = "Darwin*" ]; then
+    GRADLE_OPTS="$GRADLE_OPTS -Xdock:name=MyGradleApp -Xdock:icon=gradle.icns"
+fi
+
+# Para Cygwin o MSYS, cambie las rutas al formato de Windows antes de ejecutar Java
+if [ "`uname`" = "CYGWIN*" ] || [ "`uname`" = "MINGW*" ]; then
+    APP_HOME=`cygpath --path --mixed "$APP_HOME"`
+    CLASSPATH=`cygpath --path --mixed "$CLASSPATH"`
+    JAVACMD=`cygpath --unix "$JAVACMD"`
+
+    # Construir el patrón para argumentos a convertir a través de cygpath
+    ROOTDIRSRAW=`find -L / -maxdepth 1 -mindepth 1 -type d 2>/dev/null`
+    SEP=""
+    for dir in $ROOTDIRSRAW; do
+        ROOTDIRS="$ROOTDIRS$SEP$dir"
+        SEP="|"
+    done
+    OURCYGPATTERN="(^($ROOTDIRS))"
+    # Agregar un patrón definido por el usuario a los argumentos de cygpath
+    if [ "$GRADLE_CYGPATTERN" != "" ]; then
+        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
+    fi
+    # Ahora convierta los argumentos - truco para limitarnos a /bin/sh
+    i=0
+    for arg in "$@"; do
+        CHECK=`echo "$arg" | egrep -c "$OURCYGPATTERN" -`
+        CHECK2=`echo "$arg" | egrep -c "^-"` # Determinar si es una opción
+
+        if [ $CHECK -ne 0 ] && [ $CHECK2 -eq 0 ]; then # Agregada una condición
+            eval `echo args$i`=`cygpath --path --ignore --mixed "$arg"`
+        else
+            eval `echo args$i`="\"$arg\""
+        fi
+        i=`expr $i + 1`
+    done
+    case $i in
+        0) set -- ;;
+        1) set -- "$args0" ;;
+        2) set -- "$args0" "$args1" ;;
+        3) set -- "$args0" "$args1" "$args2" ;;
+        4) set -- "$args0" "$args1" "$args2" "$args3" ;;
+        5) set -- "$args0" "$args1" "$args2" "$args3" "$args4" ;;
+        6) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" ;;
+        7) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" ;;
+        8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" ;;
+        9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
+    esac
+fi
+
+# Pasar las opciones de JVM y otros argumentos
+eval set -- $DEFAULT_JVM_OPTS $JAVA_OPTS $GRADLE_OPTS -Dorg.gradle.appname=MyGradleApp -classpath "$CLASSPATH" org.gradle.wrapper.GradleWrapperMain "$@"
+
+# Ejecutar el comando Java
+exec "$JAVACMD" "$@"
